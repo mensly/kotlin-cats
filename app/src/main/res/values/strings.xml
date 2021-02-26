@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">KotlinCats</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="category_cutest">Cutest in the World</string>
+    <string name="balrog">Balrog</string>
 </resources>
