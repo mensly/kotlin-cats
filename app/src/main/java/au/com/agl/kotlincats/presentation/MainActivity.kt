@@ -46,9 +46,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun refresh() {
         refresher.isRefreshing = true
-        facade.loadGroupedCats(object: Callback<Any>{
-            override fun onSuccess(data: Any) {
-                (data as List<*>).let(adapter::updateCats)
+        facade.loadGroupedCats(object: Callback<Map<String, List<String>>>{
+            override fun onSuccess(data: Map<String, List<String>>) {
+                adapter.updateCats(data)
                 Log.d(MainActivity::class.java.simpleName, data.toString())
                 refresher.isRefreshing = false
             }

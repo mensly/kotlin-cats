@@ -1,52 +1,28 @@
 package au.com.agl.kotlincats.presentation
 
-import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.annotation.StringRes
 import androidx.recyclerview.widget.RecyclerView
 import au.com.agl.kotlincats.R
-import au.com.agl.kotlincats.data.model.Owner
+import au.com.agl.kotlincats.data.model.Categories
 import java.lang.IllegalArgumentException
 
 class CatAdapter: RecyclerView.Adapter<CatAdapter.ViewHolder>() {
-    private companion object {
-        private const val TYPE_CAT = "Cat"
-    }
     private enum class ViewType {
         Heading, Cat, CutestCat
-    }
-    private enum class Categories(@StringRes val label: Int) {
-        Male(R.string.gender_male),
-        Female(R.string.gender_female),
-        Cutest(R.string.category_cutest)
     }
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView = itemView.findViewById<TextView>(R.id.text)
     }
 
-    private var cats = emptyMap<String, MutableList<String>>()
+    private var cats = emptyMap<String, List<String>>()
     private val headerMale = 0
     private var headerFemale = 1
     private var headerCutest = 2
 
-    fun updateCats(list: List<*>) {
-        val cats = mapOf(
-            Categories.Male.name to mutableListOf<String>(),
-            Categories.Female.name to mutableListOf()
-        )
-        for (item in list) {
-            if (item !is Owner) { continue }
-            item.pets?.forEach { pet ->
-                if (pet.type == TYPE_CAT) {
-                    cats[item.gender]?.add(pet.name)
-                }
-            }
-        }
-        cats.values.forEach(MutableList<String>::sort)
+    fun updateCats(cats: Map<String, List<String>>) {
         val maleCatCount = cats[Categories.Male.name]!!.size
         val femaleCatCount = cats[Categories.Female.name]!!.size
         headerFemale = 1 + maleCatCount
@@ -84,6 +60,6 @@ class CatAdapter: RecyclerView.Adapter<CatAdapter.ViewHolder>() {
 
     override fun getItemCount() =
         3 + // Headers
-        cats.values.map(MutableList<String>::size).sum() + // Slightly less cute cats
+        cats.values.map(List<String>::size).sum() + // Slightly less cute cats
         1 // Balrog
 }
