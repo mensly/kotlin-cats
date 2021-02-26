@@ -1,12 +1,12 @@
 package au.com.agl.kotlincats.presentation
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import au.com.agl.kotlincats.R
-import au.com.agl.kotlincats.data.model.Categories
 import java.lang.IllegalArgumentException
 
 class CatAdapter: RecyclerView.Adapter<CatAdapter.ViewHolder>() {
@@ -18,22 +18,28 @@ class CatAdapter: RecyclerView.Adapter<CatAdapter.ViewHolder>() {
     }
 
     private var cats = emptyMap<String, List<String>>()
-    private val headerMale = 0
-    private var headerFemale = 1
+    private var headers = emptyList<String>()
+    private var headerIndices = emptyList<Int>()
     private var headerCutest = 2
 
     fun updateCats(cats: Map<String, List<String>>) {
-        val maleCatCount = cats[Categories.Male.name]!!.size
-        val femaleCatCount = cats[Categories.Female.name]!!.size
-        headerFemale = 1 + maleCatCount
-        headerCutest = 2 + maleCatCount + femaleCatCount
+        headers = cats.keys.sorted()
+        val headerIndices = mutableListOf<Int>()
+        var index = 0
+        for (header in headers) {
+            headerIndices += index
+            index += cats[header]!!.size + 1
+        }
+        headerCutest = headers.size + cats.values.map(List<String>::size).sum()
+        headerIndices += headerCutest
+        this.headerIndices = headerIndices
         this.cats = cats
         notifyDataSetChanged()
     }
 
-    override fun getItemViewType(position: Int) = (when (position) {
-        headerMale, headerFemale, headerCutest -> ViewType.Heading
-        itemCount - 1 -> ViewType.CutestCat
+    override fun getItemViewType(position: Int) = (when {
+        position in headerIndices -> ViewType.Heading
+        position == itemCount - 1 -> ViewType.CutestCat
         else -> ViewType.Cat
     }).ordinal
 
@@ -50,16 +56,22 @@ class CatAdapter: RecyclerView.Adapter<CatAdapter.ViewHolder>() {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when {
-            position == headerMale -> holder.textView.setText(Categories.Male.label)
-            position == headerFemale -> holder.textView.setText(Categories.Female.label)
-            position == headerCutest -> holder.textView.setText(Categories.Cutest.label)
-            position < headerFemale -> holder.textView.text = cats[Categories.Male.name]!![position - headerMale - 1]
-            position < headerCutest -> holder.textView.text = cats[Categories.Female.name]!![position - headerFemale - 1]
+            position > headerCutest -> { /* no-op */ }
+            position == headerCutest -> holder.textView.setText(R.string.category_cutest)
+            position in headerIndices -> holder.textView.text = headers[headerIndices.indexOf(position)]
+            else -> {
+                var positionOffset = 1
+                for ((i, gender) in headers.withIndex()) {
+                    val cats = this.cats[gender]!!
+                    if (position < headerIndices[i + 1]) {
+                        holder.textView.text = cats[position - positionOffset]
+                        break
+                    }
+                    positionOffset += cats.size + 1
+                }
+            }
         }
     }
 
-    override fun getItemCount() =
-        3 + // Headers
-        cats.values.map(List<String>::size).sum() + // Slightly less cute cats
-        1 // Balrog
+    override fun getItemCount() = headerCutest + 2
 }
